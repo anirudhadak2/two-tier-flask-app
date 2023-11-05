@@ -1,0 +1,30 @@
+pipeline {
+    agent any
+    
+    stages{
+        stage("Code"){
+            steps{
+                git url: "https://github.com/anirudhadak2/two-tier-flask-app.git", branch: "master"
+            }
+        }
+        stage("Build & Test"){
+            steps{
+                sh "docker build . -t flaskapp"
+            }
+        }
+        stage("Push to DockerHub"){
+            steps{
+                withCredentials([usernamePassword(credentialsId:"dockerhub",passwordVariable:"dockerHubPass",usernameVariable:"dockerHubUser")]){
+                    sh "docker login -u ${env.dockerHubUser} -p ${env.dockerHubPass}"
+                    sh "docker tag flaskapp anirudhadak2/new-app:flaskapp"
+                    sh "docker push anirudhadak2/new-app:flaskapp" 
+                }
+            }
+        }
+        stage("Deploy"){
+            steps{
+                sh "docker-compose down && docker-compose up -d"
+            }
+        }
+    }
+}

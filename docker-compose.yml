@@ -4,7 +4,9 @@ services:
   backend:
     build:
       context: .
+    image: anirudhadak2/new-app:flaskapp  
     ports:
+     
       - "5000:5000"
     environment:
       MYSQL_HOST: mysql

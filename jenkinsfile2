@@ -1,0 +1,44 @@
+pipeline {
+    agent any
+    
+    stages{
+        stage("Code"){
+            steps{
+                git url: "https://github.com/anirudhadak2/two-tier-flask-app.git", branch: "master"
+            }
+        }
+
+
+stage('TRIVY FS SCAN') {
+            steps {
+                sh "trivy fs . > trivyfs.txt"
+            }
+        }
+
+
+ stage("Docker Build & Push"){
+            steps{
+                script{
+                   withDockerRegistry(credentialsId: 'docker', toolName: 'docker'){   
+                           sh "docker build . -t flaskapp"
+                      sh "docker tag flaskapp anirudhadak2/new-app:flaskapp"
+                      sh "docker push anirudhadak2/new-app:flaskapp" 
+                    }
+                }
+            }
+        }
+
+        stage("TRIVY"){
+            steps{
+                sh "trivy image  anirudhadak2/new-app:flaskapp > trivyimage.txt" 
+            }
+        }
+
+
+        stage("Deploy"){
+            steps{
+                sh "docker-compose down && docker-compose up -d"
+            }
+        }
+    }
+}

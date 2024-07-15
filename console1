@@ -1,0 +1,171 @@
+Started by GitHub push by anirudhadak2
+[Pipeline] Start of Pipeline
+[Pipeline] node
+Running on Jenkins in /var/lib/jenkins/workspace/two-tier-flask-app pipeline
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Code)
+[Pipeline] git
+The recommended git tool is: NONE
+No credentials specified
+ > git rev-parse --resolve-git-dir /var/lib/jenkins/workspace/two-tier-flask-app pipeline/.git # timeout=10
+Fetching changes from the remote Git repository
+ > git config remote.origin.url https://github.com/anirudhadak2/two-tier-flask-app.git # timeout=10
+Fetching upstream changes from https://github.com/anirudhadak2/two-tier-flask-app.git
+ > git --version # timeout=10
+ > git --version # 'git version 2.43.0'
+ > git fetch --tags --force --progress -- https://github.com/anirudhadak2/two-tier-flask-app.git +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > git rev-parse refs/remotes/origin/master^{commit} # timeout=10
+Checking out Revision b1727d6c39dee468a4c5a57c4de4584029e2607a (refs/remotes/origin/master)
+ > git config core.sparsecheckout # timeout=10
+ > git checkout -f b1727d6c39dee468a4c5a57c4de4584029e2607a # timeout=10
+ > git branch -a -v --no-abbrev # timeout=10
+ > git branch -D master # timeout=10
+ > git checkout -b master b1727d6c39dee468a4c5a57c4de4584029e2607a # timeout=10
+Commit message: "Update index.html"
+ > git rev-list --no-walk 70acf9ef912c3b2254f67078d754b49b619e971d # timeout=10
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (TRIVY FS SCAN)
+[Pipeline] sh
++ trivy fs .
+2024-07-15T13:05:32Z	INFO	Vulnerability scanning is enabled
+2024-07-15T13:05:32Z	INFO	Secret scanning is enabled
+2024-07-15T13:05:32Z	INFO	If your scanning is slow, please try '--scanners vuln' to disable secret scanning
+2024-07-15T13:05:32Z	INFO	Please see also https://aquasecurity.github.io/trivy/v0.53/docs/scanner/secret#recommendation for faster secret detection
+2024-07-15T13:05:32Z	WARN	[pip] Unable to find python `site-packages` directory. License detection is skipped.	err="site-packages directory not found"
+2024-07-15T13:05:32Z	INFO	Number of language-specific files	num=1
+2024-07-15T13:05:32Z	INFO	[pip] Detecting vulnerabilities...
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Docker Build & Push)
+[Pipeline] script
+[Pipeline] {
+[Pipeline] withDockerRegistry
+$ /var/lib/jenkins/tools/org.jenkinsci.plugins.docker.commons.tools.DockerTool/docker/bin/docker login -u anirudhadak2 -p ******** https://index.docker.io/v1/
+Login Succeeded
+[Pipeline] {
+[Pipeline] sh
++ docker build . -t flaskapp
+DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
+            Install the buildx component to build images with BuildKit:
+            https://docs.docker.com/go/buildx/
+
+Sending build context to Docker daemon    898kB
+
+Step 1/8 : FROM python:3.9-slim
+ ---> b97320a8c1ca
+Step 2/8 : WORKDIR /app
+ ---> Using cache
+ ---> 9bda5eecfa4f
+Step 3/8 : RUN apt-get update     && apt-get upgrade -y     && apt-get install -y gcc default-libmysqlclient-dev pkg-config     && rm -rf /var/lib/apt/lists/*
+ ---> Using cache
+ ---> c494b2f0bc9b
+Step 4/8 : COPY requirements.txt .
+ ---> Using cache
+ ---> 3943d7f6bd26
+Step 5/8 : RUN pip install mysqlclient
+ ---> Using cache
+ ---> 79a0db7dd293
+Step 6/8 : RUN pip install --no-cache-dir -r requirements.txt
+ ---> Using cache
+ ---> 9bd381c5f4f4
+Step 7/8 : COPY . .
+ ---> 8cccc1a24c3a
+Step 8/8 : CMD ["python", "app.py"]
+ ---> Running in 6179a2465c18
+Removing intermediate container 6179a2465c18
+ ---> 38e837057403
+Successfully built 38e837057403
+Successfully tagged flaskapp:latest
+[Pipeline] sh
++ docker tag flaskapp anirudhadak2/new-app:flaskapp
+[Pipeline] sh
++ docker push anirudhadak2/new-app:flaskapp
+The push refers to repository [docker.io/anirudhadak2/new-app]
+39ff3af57926: Preparing
+dff3c04aea33: Preparing
+06fb9fd0ebd6: Preparing
+a7869c294d95: Preparing
+edbd05ddb518: Preparing
+8965f2c38487: Preparing
+a58d16c447ed: Preparing
+b88d8bda5e53: Preparing
+8cddf1d30fbd: Preparing
+b9fc95825e61: Preparing
+32148f9f6c5a: Preparing
+8965f2c38487: Waiting
+a58d16c447ed: Waiting
+b88d8bda5e53: Waiting
+8cddf1d30fbd: Waiting
+b9fc95825e61: Waiting
+32148f9f6c5a: Waiting
+a7869c294d95: Layer already exists
+dff3c04aea33: Layer already exists
+edbd05ddb518: Layer already exists
+06fb9fd0ebd6: Layer already exists
+8965f2c38487: Layer already exists
+8cddf1d30fbd: Layer already exists
+a58d16c447ed: Layer already exists
+b88d8bda5e53: Layer already exists
+b9fc95825e61: Layer already exists
+32148f9f6c5a: Layer already exists
+39ff3af57926: Pushed
+flaskapp: digest: sha256:c1f22ca5909ad63cce920eedf8da15a1edb5d6cffcd633c82ac6597a6c68df6a size: 2627
+[Pipeline] }
+[Pipeline] // withDockerRegistry
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (TRIVY)
+[Pipeline] sh
++ trivy image anirudhadak2/new-app:flaskapp
+2024-07-15T13:05:37Z	INFO	Vulnerability scanning is enabled
+2024-07-15T13:05:37Z	INFO	Secret scanning is enabled
+2024-07-15T13:05:37Z	INFO	If your scanning is slow, please try '--scanners vuln' to disable secret scanning
+2024-07-15T13:05:37Z	INFO	Please see also https://aquasecurity.github.io/trivy/v0.53/docs/scanner/secret#recommendation for faster secret detection
+2024-07-15T13:05:40Z	INFO	Detected OS	family="debian" version="12.6"
+2024-07-15T13:05:40Z	INFO	[debian] Detecting vulnerabilities...	os_version="12" pkg_num=185
+2024-07-15T13:05:40Z	INFO	Number of language-specific files	num=1
+2024-07-15T13:05:40Z	INFO	[python-pkg] Detecting vulnerabilities...
+2024-07-15T13:05:40Z	WARN	Using severities from other vendors for some vulnerabilities. Read https://aquasecurity.github.io/trivy/v0.53/docs/scanner/vulnerability#severity-selection for details.
+2024-07-15T13:05:40Z	INFO	Table result includes only package filenames. Use '--format json' option to get the full path to the package file.
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Deploy)
+[Pipeline] sh
++ docker-compose down
+time="2024-07-15T13:05:41Z" level=warning msg="/var/lib/jenkins/workspace/two-tier-flask-app pipeline/docker-compose.yml: `version` is obsolete"
+ Container two-tier-flask-apppipeline-backend-1  Stopping
+ Container two-tier-flask-apppipeline-backend-1  Stopped
+ Container two-tier-flask-apppipeline-backend-1  Removing
+ Container two-tier-flask-apppipeline-backend-1  Removed
+ Container two-tier-flask-apppipeline-mysql-1  Stopping
+ Container two-tier-flask-apppipeline-mysql-1  Stopped
+ Container two-tier-flask-apppipeline-mysql-1  Removing
+ Container two-tier-flask-apppipeline-mysql-1  Removed
+ Network two-tier-flask-apppipeline_default  Removing
+ Network two-tier-flask-apppipeline_default  Removed
++ docker-compose up -d
+time="2024-07-15T13:06:06Z" level=warning msg="/var/lib/jenkins/workspace/two-tier-flask-app pipeline/docker-compose.yml: `version` is obsolete"
+ Network two-tier-flask-apppipeline_default  Creating
+ Network two-tier-flask-apppipeline_default  Created
+ Container two-tier-flask-apppipeline-mysql-1  Creating
+ Container two-tier-flask-apppipeline-mysql-1  Created
+ Container two-tier-flask-apppipeline-backend-1  Creating
+ Container two-tier-flask-apppipeline-backend-1  Created
+ Container two-tier-flask-apppipeline-mysql-1  Starting
+ Container two-tier-flask-apppipeline-mysql-1  Started
+ Container two-tier-flask-apppipeline-backend-1  Starting
+ Container two-tier-flask-apppipeline-backend-1  Started
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+[Pipeline] // node
+[Pipeline] End of Pipeline
+Finished: SUCCESS
